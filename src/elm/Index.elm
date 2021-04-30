@@ -5,17 +5,16 @@ import Browser.Events exposing (onKeyDown)
 import Components.Board
 import Components.Hold
 import Components.Next
-import Html exposing (text)
+import Html exposing (Html, text)
 import Html.Attributes as Attrs
 import Html.Lazy exposing (lazy, lazy2)
 import Keybinds as K exposing (Keybind, keyProcessor)
 import Keyboard.Event exposing (considerKeyboardEvent)
 import Logic exposing (Board, Paused(..), Piece, PieceType, emptyBoard, getLevelFromScore, getSpeedFromLevel)
 import Random
+import String exposing (fromInt)
 import Time
 import Util exposing (const)
-import String exposing (fromInt)
-import Html exposing (Html)
 
 
 {-| The step of a state machine when it receives its only event—the user pause
@@ -79,7 +78,7 @@ subscriptions model =
     Sub.batch
         [ case model.paused of
             NotPaused ->
-                Time.every (model.score |> getLevelFromScore |> getSpeedFromLevel |> ((*) 1000)) Tick
+                Time.every (model.score |> getLevelFromScore |> getSpeedFromLevel |> (*) 1000) Tick
 
             ReadyToUnpause _ ->
                 Time.every 1000 CountUnpause
@@ -104,11 +103,12 @@ type Msg
     | CountUnpause Time.Posix
 
 
-noCommand : State -> (State, Cmd Msg)
-noCommand x = (x, Cmd.none)
+noCommand : State -> ( State, Cmd Msg )
+noCommand x =
+    ( x, Cmd.none )
 
 
-updateModelAfterPieceDrops : State -> Board -> (State, Cmd Msg)
+updateModelAfterPieceDrops : State -> Board -> ( State, Cmd Msg )
 updateModelAfterPieceDrops oldModel newBoard =
     let
         ( linesCleared, finalBoard ) =
@@ -121,13 +121,18 @@ updateModelAfterPieceDrops oldModel newBoard =
         , previousWasTetris = linesCleared == 4
         , score =
             oldModel.score
-            + Logic.scoreForLinesCleared
-                oldModel.previousWasTetris
-                linesCleared
-    } |> update GetNewPiece -- get the new piece
+                + Logic.scoreForLinesCleared
+                    oldModel.previousWasTetris
+                    linesCleared
+    }
+        |> update GetNewPiece
 
 
-keyHandler : Keybind -> State -> (State, Cmd Msg)
+
+-- get the new piece
+
+
+keyHandler : Keybind -> State -> ( State, Cmd Msg )
 keyHandler msg model =
     case model.piece of
         Nothing ->
@@ -195,9 +200,14 @@ update msg model =
                     ( model, Random.generate NewBag Logic.bag )
 
                 nextPiece :: nextBag ->
-                    if List.length nextBag < 6 -- always have at least 6 next pieces
-                        then ( model, Random.generate NewBag Logic.bag )
-                        else { model | bag = nextBag, piece = Just (Logic.newPiece nextPiece |> Logic.updatePiece model.board) } |> noCommand
+                    if
+                        List.length nextBag < 6
+                        -- always have at least 6 next pieces
+                    then
+                        ( model, Random.generate NewBag Logic.bag )
+
+                    else
+                        { model | bag = nextBag, piece = Just (Logic.newPiece nextPiece |> Logic.updatePiece model.board) } |> noCommand
 
         Tick _ ->
             update GameTick model
@@ -206,30 +216,30 @@ update msg model =
             { model | bag = List.append model.bag newBag } |> update GetNewPiece
 
         KeyPress keybind ->
-           keyHandler keybind model
+            keyHandler keybind model
 
         VisibilityChange "focus" ->
             case model.paused of
                 PausedByFocus ->
-                   { model | paused = ReadyToUnpause 3 } |> noCommand
+                    { model | paused = ReadyToUnpause 3 } |> noCommand
 
                 _ ->
-                   model |> noCommand
+                    model |> noCommand
 
         VisibilityChange "blur" ->
             case model.paused of
                 NotPaused ->
-                   { model | paused = PausedByFocus } |> noCommand
+                    { model | paused = PausedByFocus } |> noCommand
 
                 ReadyToUnpause _ ->
-                   { model | paused = PausedByFocus } |> noCommand
+                    { model | paused = PausedByFocus } |> noCommand
 
                 _ ->
-                   model |> noCommand
+                    model |> noCommand
 
         -- invalid message from port
         VisibilityChange _ ->
-           model |> noCommand
+            model |> noCommand
 
         CountUnpause _ ->
             ( { model
@@ -250,7 +260,8 @@ update msg model =
 
 
 scoreHeader : Int -> Html msg
-scoreHeader score = Html.h2 [ Attrs.id "title" ] [ text <| "Score: " ++ (fromInt score) ++ "\u{2003}Level: " ++ (fromInt <| Logic.getLevelFromScore score) ]
+scoreHeader score =
+    Html.h2 [ Attrs.id "title" ] [ text <| "Score: " ++ fromInt score ++ "\u{2003}Level: " ++ (fromInt <| Logic.getLevelFromScore score) ]
 
 
 view : State -> Document Msg
