@@ -7,7 +7,7 @@ import Html.Attributes exposing (attribute)
 import List exposing (filterMap)
 import Logic exposing (boardHeight, boardWidth, visibleRows)
 import Svg exposing (Attribute, Svg, defs, g, rect, svg, use)
-import Svg.Attributes exposing (fill, height, id, width, x, y)
+import Svg.Attributes exposing (fill, height, id, opacity, width, x, y)
 import Svg.Lazy exposing (lazy)
 import Util exposing (arrayConcat)
 
@@ -53,4 +53,5 @@ view board piece =
         , defs [] [ minoDef ]
         , lazy viewBoard board
         , lazy viewPiece piece
+        , g [ opacity "0.5" ] [ lazy viewPiece (Maybe.map (Logic.softDrop board) piece) ]
         ]
