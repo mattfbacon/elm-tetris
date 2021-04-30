@@ -1,0 +1,79 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	height: 100vh;
+	margin: 0;
+	padding: 1rem;
+	overflow-y: hidden;
+}
+
+main {
+	max-width: (800rem / 16); // 800px but responsive
+	margin: 0 auto;
+	display: grid;
+	column-gap: 1rem;
+	row-gap: 1rem;
+	grid-template-columns: 5fr 10fr 5fr; // preserves size of piece
+	grid-template-rows: min-content auto 1fr;
+	grid-template-areas:
+		" .     title holdtitle "
+		" score game  hold      "
+		" score game  next      ";
+	@media (max-aspect-ratio: 6/7) {
+		max-width: 37vh; // somehow works
+		grid-template-columns: 5fr 1rem 5fr;
+		column-gap: 0;
+		row-gap: 1rem;
+		grid-template-rows: min-content auto min-content auto;
+		grid-template-areas:
+			" title     title title "
+			" game      game  game  "
+			" holdtitle .     next  "
+			" hold      .     next  ";
+	}
+	height: 100%;
+}
+
+h2, h3 {
+	text-align: center;
+	margin: 0;
+	line-height: 1;
+}
+
+#title {
+	grid-area: title;
+	align-self: baseline;
+}
+
+#hold-title {
+	grid-area: holdtitle;
+	align-self: baseline;
+}
+
+#game {
+	grid-area: game;
+	max-height: 100%;
+}
+
+#hold {
+	grid-area: hold;
+}
+
+#next {
+	grid-area: next;
+	// hack to make it not mess up the layout
+	max-height: 0;
+	overflow-y: visible;
+	& > h3 {
+		margin: 0 0 1rem 0;
+	}
+	& > .pieces {
+		line-height: 0; // avoid a gap
+		& > svg {
+			margin-bottom: -20%; // 1 mino
+		}
+		overflow-y: visible;
+	}
+}
