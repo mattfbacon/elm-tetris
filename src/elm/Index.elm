@@ -5,9 +5,9 @@ import Browser.Events exposing (onKeyDown)
 import Components.Board
 import Components.Hold
 import Components.Next
-import Html exposing (Html, text)
-import Html.Attributes as Attrs
-import Html.Lazy exposing (lazy, lazy2)
+import Html exposing (Html, h1, h2, h4, text)
+import Html.Attributes as Attrs exposing (class, id, style)
+import Html.Lazy exposing (lazy, lazy3)
 import Keybinds as K exposing (Keybind, keyProcessor)
 import Keyboard.Event exposing (considerKeyboardEvent)
 import Logic exposing (Board, Paused(..), Piece, PieceType, emptyBoard, getLevelFromScore, getSpeedFromLevel)
@@ -264,16 +264,65 @@ scoreHeader score =
     Html.h2 [ Attrs.id "title" ] [ text <| "Score: " ++ fromInt score ++ "\u{2003}Level: " ++ (fromInt <| Logic.getLevelFromScore score) ]
 
 
+isPaused : Paused -> Bool
+isPaused paused =
+    case paused of
+        PausedByUser ->
+            True
+
+        PausedByFocus ->
+            True
+
+        ReadyToUnpause _ ->
+            True
+
+        NotPaused ->
+            False
+
+
+pauseClass : Paused -> String
+pauseClass paused =
+    if isPaused paused then
+        "paused"
+
+    else
+        "unpaused"
+
+
+pauseComponent : Paused -> Html msg
+pauseComponent paused =
+    Html.div [ id "paused", class <| pauseClass paused ]
+        (case paused of
+            PausedByUser ->
+                [ h2 [] [ text "Paused" ]
+                , h4 [] [ text "(Press Esc to unpause)" ]
+                ]
+
+            PausedByFocus ->
+                [ h2 [] [ text "Paused" ]
+                , h4 [] [ text "(Refocus the window to unpause)" ]
+                ]
+
+            ReadyToUnpause secs ->
+                [ h1 [ style "font-size" "5rem" ] [ text <| fromInt secs ]
+                ]
+
+            NotPaused ->
+                []
+        )
+
+
 view : State -> Document Msg
 view model =
     { title = "Tetris in Elm"
     , body =
-        [ Html.main_ []
+        [ Html.main_ [ class <| pauseClass model.paused ]
             [ lazy scoreHeader model.score
             , Html.h3 [ Attrs.id "hold-title" ] [ text "Hold" ]
-            , lazy2 Components.Board.view model.board model.piece
+            , lazy3 Components.Board.view (isPaused model.paused) model.board model.piece
             , lazy Components.Hold.view model.hold
             , lazy Components.Next.view model.bag
             ]
+        , lazy pauseComponent model.paused
         ]
     }

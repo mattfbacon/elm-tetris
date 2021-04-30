@@ -34,9 +34,13 @@ main {
 			" hold      .     next  ";
 	}
 	height: 100%;
+	transition: blur .3s ease;
+	&.paused {
+		filter: blur(5px);
+	}
 }
 
-h2, h3 {
+h2, h3, h4 {
 	text-align: center;
 	margin: 0;
 	line-height: 1;
@@ -75,5 +79,27 @@ h2, h3 {
 			margin-bottom: -20%; // 1 mino
 		}
 		overflow-y: visible;
+	}
+}
+
+#paused {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	margin: 0;
+	padding: 1rem;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity .3s ease;
+	z-index: 100;
+	color: white;
+	&.paused {
+		opacity: 1;
 	}
 }

@@ -42,16 +42,23 @@ viewBoard board =
         )
 
 
-view : Logic.Board -> Maybe Logic.Piece -> Svg msg
-view board piece =
+view : Bool -> Logic.Board -> Maybe Logic.Piece -> Svg msg
+view hideGame board piece =
     svg
         [ id "game"
         , makeViewBox 0 (boardHeight - visibleRows) boardWidth visibleRows
         , attribute "xmlns" "http://www.w3.org/2000/svg"
         ]
-        [ rect [ x "0", y "0", width <| toSVGPosition <| boardWidth, height <| toSVGPosition <| boardHeight, fill Colors.background ] []
-        , defs [] [ minoDef ]
-        , lazy viewBoard board
-        , lazy viewPiece piece
-        , g [ opacity "0.5" ] [ lazy viewPiece (Maybe.map (Logic.softDrop board) piece) ]
-        ]
+        ([ rect [ x "0", y "0", width <| toSVGPosition <| boardWidth, height <| toSVGPosition <| boardHeight, fill Colors.background ] []
+         , defs [] [ minoDef ]
+         ]
+            ++ (if hideGame then
+                    []
+
+                else
+                    [ lazy viewBoard board
+                    , lazy viewPiece piece
+                    , g [ opacity "0.5" ] [ lazy viewPiece (Maybe.map (Logic.softDrop board) piece) ]
+                    ]
+               )
+        )
